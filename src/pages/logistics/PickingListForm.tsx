@@ -25,7 +25,16 @@ const LogisticsPickingList = () => {
       : 1;
     setFormData({
       ...formData,
-      items: [...formData.items, { id: newId, sku: "", description: "", location: "", quantity: 1 }]
+      items: [...formData.items, { 
+        id: newId, 
+        itemCode: "", 
+        description: "", 
+        unit: "CS", 
+        orderQty: 0,
+        pickQty: 0,
+        backOrderQty: 0,
+        pickMass: 0
+      }]
     });
   };
 
