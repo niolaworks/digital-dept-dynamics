@@ -11,6 +11,30 @@ interface TransportDetailsFormProps {
 }
 
 export const TransportDetailsForm = ({ formData, setFormData }: TransportDetailsFormProps) => {
+  // Ensure transportDetails exists to prevent the error
+  const transportDetails = formData.transportDetails || {
+    transporter: '',
+    vehicleRegNumber: '',
+    vehicleType: '',
+    vehicleCapacity: '',
+    driverName: '',
+    driverSignature: '',
+    datePicked: '',
+    pickedBy: '',
+    checkedBy: '',
+    comments: ''
+  };
+
+  const handleTransportDetailsChange = (field: string, value: string) => {
+    setFormData({
+      ...formData,
+      transportDetails: {
+        ...transportDetails,
+        [field]: value
+      }
+    });
+  };
+
   return (
     <Card className="mb-6">
       <CardHeader>
@@ -22,88 +46,64 @@ export const TransportDetailsForm = ({ formData, setFormData }: TransportDetails
             <Label htmlFor="transporter">Transporter</Label>
             <Input 
               id="transporter"
-              value={formData.transportDetails.transporter}
-              onChange={e => setFormData({
-                ...formData,
-                transportDetails: { ...formData.transportDetails, transporter: e.target.value }
-              })}
+              value={transportDetails.transporter}
+              onChange={e => handleTransportDetailsChange('transporter', e.target.value)}
             />
           </div>
           <div className="space-y-2">
             <Label htmlFor="vehicleRegNumber">Vehicle Register Number</Label>
             <Input 
               id="vehicleRegNumber"
-              value={formData.transportDetails.vehicleRegNumber}
-              onChange={e => setFormData({
-                ...formData,
-                transportDetails: { ...formData.transportDetails, vehicleRegNumber: e.target.value }
-              })}
+              value={transportDetails.vehicleRegNumber}
+              onChange={e => handleTransportDetailsChange('vehicleRegNumber', e.target.value)}
             />
           </div>
           <div className="space-y-2">
             <Label htmlFor="vehicleType">Vehicle Type</Label>
             <Input 
               id="vehicleType"
-              value={formData.transportDetails.vehicleType}
-              onChange={e => setFormData({
-                ...formData,
-                transportDetails: { ...formData.transportDetails, vehicleType: e.target.value }
-              })}
+              value={transportDetails.vehicleType}
+              onChange={e => handleTransportDetailsChange('vehicleType', e.target.value)}
             />
           </div>
           <div className="space-y-2">
             <Label htmlFor="vehicleCapacity">Vehicle Capacity</Label>
             <Input 
               id="vehicleCapacity"
-              value={formData.transportDetails.vehicleCapacity}
-              onChange={e => setFormData({
-                ...formData,
-                transportDetails: { ...formData.transportDetails, vehicleCapacity: e.target.value }
-              })}
+              value={transportDetails.vehicleCapacity}
+              onChange={e => handleTransportDetailsChange('vehicleCapacity', e.target.value)}
             />
           </div>
           <div className="space-y-2">
             <Label htmlFor="driverName">Driver Name</Label>
             <Input 
               id="driverName"
-              value={formData.transportDetails.driverName}
-              onChange={e => setFormData({
-                ...formData,
-                transportDetails: { ...formData.transportDetails, driverName: e.target.value }
-              })}
+              value={transportDetails.driverName}
+              onChange={e => handleTransportDetailsChange('driverName', e.target.value)}
             />
           </div>
           <div className="space-y-2">
             <Label htmlFor="pickedBy">Picked By</Label>
             <Input 
               id="pickedBy"
-              value={formData.transportDetails.pickedBy}
-              onChange={e => setFormData({
-                ...formData,
-                transportDetails: { ...formData.transportDetails, pickedBy: e.target.value }
-              })}
+              value={transportDetails.pickedBy}
+              onChange={e => handleTransportDetailsChange('pickedBy', e.target.value)}
             />
           </div>
           <div className="space-y-2">
             <Label htmlFor="checkedBy">Checked By</Label>
             <Input 
               id="checkedBy"
-              value={formData.transportDetails.checkedBy}
-              onChange={e => setFormData({
-                ...formData,
-                transportDetails: { ...formData.transportDetails, checkedBy: e.target.value }
-              })}
+              value={transportDetails.checkedBy}
+              onChange={e => handleTransportDetailsChange('checkedBy', e.target.value)}
             />
           </div>
           <div className="space-y-2 md:col-span-2">
             <Label htmlFor="comments">Comments</Label>
             <Textarea 
               id="comments"
-              value={formData.transportDetails.comments}
-              onChange={e => setFormData({
-                ...formData,
-                transportDetails: { ...formData.transportDetails, comments: e.target.value }
-              })}
+              value={transportDetails.comments}
+              onChange={e => handleTransportDetailsChange('comments', e.target.value)}
             />
           </div>
         </div>

@@ -1,46 +1,6 @@
 
 import { useState, useEffect } from 'react';
-
-type Item = {
-  id: number;
-  itemCode: string;
-  description: string;
-  unit: string;
-  orderQty: number;
-  pickQty: number;
-  backOrderQty: number;
-  pickMass: number;
-};
-
-type TransportDetails = {
-  transporter: string;
-  vehicleRegNumber: string;
-  vehicleType: string;
-  vehicleCapacity: string;
-  driverName: string;
-  driverSignature?: string;
-  datePicked?: string;
-  pickedBy: string;
-  checkedBy: string;
-  comments: string;
-};
-
-type PickingListData = {
-  pln: string;
-  orderNumber: string;
-  customerCode: string;
-  customerName: string;
-  customerAddress: string;
-  orderDate: string;
-  deliveryDate: string;
-  deliveryMode: string;
-  warehouse: string;
-  purchaseOrderNo: string;
-  items: Item[];
-  transportDetails: TransportDetails;
-  printDate?: string;
-  printTime?: string;
-};
+import { PickingListData } from '../pages/logistics/types';
 
 const STORAGE_KEY = 'picking-list-draft';
 
