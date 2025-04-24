@@ -1,5 +1,3 @@
-
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -15,34 +13,28 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { ChevronLeft, Plus, Save, Trash } from "lucide-react";
 import { Link } from "react-router-dom";
-
-type Item = {
-  id: number;
-  sku: string;
-  description: string;
-  location: string;
-  quantity: number;
-};
+import { usePickingListStorage } from "@/hooks/usePickingListStorage";
 
 const LogisticsPickingList = () => {
   const { toast } = useToast();
-  const [orderNumber, setOrderNumber] = useState("");
-  const [customerName, setCustomerName] = useState("");
-  const [pickDate, setPickDate] = useState("");
-  const [warehouse, setWarehouse] = useState("");
-  const [priority, setPriority] = useState("");
-  const [items, setItems] = useState<Item[]>([
-    { id: 1, sku: "", description: "", location: "", quantity: 1 }
-  ]);
+  const { formData, setFormData, clearStoredData } = usePickingListStorage();
 
   const handleAddItem = () => {
-    const newId = items.length > 0 ? Math.max(...items.map(item => item.id)) + 1 : 1;
-    setItems([...items, { id: newId, sku: "", description: "", location: "", quantity: 1 }]);
+    const newId = formData.items.length > 0 
+      ? Math.max(...formData.items.map(item => item.id)) + 1 
+      : 1;
+    setFormData({
+      ...formData,
+      items: [...formData.items, { id: newId, sku: "", description: "", location: "", quantity: 1 }]
+    });
   };
 
   const handleRemoveItem = (id: number) => {
-    if (items.length > 1) {
-      setItems(items.filter(item => item.id !== id));
+    if (formData.items.length > 1) {
+      setFormData({
+        ...formData,
+        items: formData.items.filter(item => item.id !== id)
+      });
     } else {
       toast({
         title: "Cannot remove item",
@@ -52,18 +44,22 @@ const LogisticsPickingList = () => {
     }
   };
 
-  const handleItemChange = (id: number, field: keyof Item, value: string | number) => {
-    setItems(items.map(item => 
-      item.id === id ? { ...item, [field]: value } : item
-    ));
+  const handleItemChange = (id: number, field: string, value: string | number) => {
+    setFormData({
+      ...formData,
+      items: formData.items.map(item =>
+        item.id === id ? { ...item, [field]: value } : item
+      )
+    });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     toast({
       title: "Picking List Created",
-      description: `Order #${orderNumber} has been saved.`
+      description: `Order #${formData.orderNumber} has been saved.`
     });
+    clearStoredData();
   };
 
   return (
@@ -87,8 +83,8 @@ const LogisticsPickingList = () => {
                 <Input 
                   id="orderNumber" 
                   placeholder="Enter order number" 
-                  value={orderNumber} 
-                  onChange={e => setOrderNumber(e.target.value)}
+                  value={formData.orderNumber} 
+                  onChange={e => setFormData({ ...formData, orderNumber: e.target.value })}
                   required
                 />
               </div>
@@ -97,8 +93,8 @@ const LogisticsPickingList = () => {
                 <Input 
                   id="customerName" 
                   placeholder="Enter customer name" 
-                  value={customerName} 
-                  onChange={e => setCustomerName(e.target.value)}
+                  value={formData.customerName} 
+                  onChange={e => setFormData({ ...formData, customerName: e.target.value })}
                   required
                 />
               </div>
@@ -107,14 +103,17 @@ const LogisticsPickingList = () => {
                 <Input 
                   id="pickDate" 
                   type="date" 
-                  value={pickDate} 
-                  onChange={e => setPickDate(e.target.value)}
+                  value={formData.pickDate} 
+                  onChange={e => setFormData({ ...formData, pickDate: e.target.value })}
                   required
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="warehouse">Warehouse *</Label>
-                <Select value={warehouse} onValueChange={setWarehouse} required>
+                <Select 
+                  value={formData.warehouse} 
+                  onValueChange={value => setFormData({ ...formData, warehouse: value })}
+                >
                   <SelectTrigger id="warehouse">
                     <SelectValue placeholder="Select warehouse" />
                   </SelectTrigger>
@@ -127,7 +126,10 @@ const LogisticsPickingList = () => {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="priority">Priority</Label>
-                <Select value={priority} onValueChange={setPriority}>
+                <Select 
+                  value={formData.priority} 
+                  onValueChange={value => setFormData({ ...formData, priority: value })}
+                >
                   <SelectTrigger id="priority">
                     <SelectValue placeholder="Select priority" />
                   </SelectTrigger>
@@ -157,7 +159,7 @@ const LogisticsPickingList = () => {
             </Button>
           </CardHeader>
           <CardContent>
-            {items.map((item, index) => (
+            {formData.items.map((item, index) => (
               <div key={item.id} className="mb-4">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="font-medium">Item #{index + 1}</h3>
@@ -210,7 +212,7 @@ const LogisticsPickingList = () => {
                     />
                   </div>
                 </div>
-                {index < items.length - 1 && <Separator className="mt-4" />}
+                {index < formData.items.length - 1 && <Separator className="mt-4" />}
               </div>
             ))}
           </CardContent>
