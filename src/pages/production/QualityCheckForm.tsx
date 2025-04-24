@@ -12,50 +12,37 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { ChevronLeft, Save } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import { Link } from "react-router-dom";
-import { Separator } from "@/components/ui/separator";
-
-type QualityCheckItem = {
-  id: number;
-  parameter: string;
-  specification: string;
-  actual: string;
-  result: "pass" | "fail" | "";
-};
+import { 
+  QualityControlData, 
+  DefectSeverity, 
+  InspectionResult, 
+  RecommendedAction 
+} from "./types";
 
 const ProductionQualityCheck = () => {
   const { toast } = useToast();
-  const [inspectionNumber, setInspectionNumber] = useState("");
-  const [jobNumber, setJobNumber] = useState("");
-  const [productCode, setProductCode] = useState("");
-  const [batchNumber, setBatchNumber] = useState("");
-  const [inspectionDate, setInspectionDate] = useState("");
-  const [inspectorName, setInspectorName] = useState("");
-  const [sampleSize, setSampleSize] = useState("");
-  const [overallResult, setOverallResult] = useState<"pass" | "fail" | "">("");
-  const [comments, setComments] = useState("");
-  
-  const [checkItems, setCheckItems] = useState<QualityCheckItem[]>([
-    { id: 1, parameter: "Dimensions", specification: "", actual: "", result: "" },
-    { id: 2, parameter: "Weight", specification: "", actual: "", result: "" },
-    { id: 3, parameter: "Visual Inspection", specification: "", actual: "", result: "" },
-    { id: 4, parameter: "Functionality Test", specification: "", actual: "", result: "" },
-  ]);
-
-  const handleCheckItemChange = (id: number, field: keyof QualityCheckItem, value: string) => {
-    setCheckItems(checkItems.map(item => 
-      item.id === id ? { ...item, [field]: value } : item
-    ));
-  };
+  const [formData, setFormData] = useState<QualityControlData>({
+    inspectionDate: new Date().toISOString().split('T')[0],
+    materialName: "",
+    batchReference: "",
+    vendorName: "",
+    inspectionResult: "Passed",
+    defectType: "",
+    severityLevel: "Minor",
+    vendorRating: 3,
+    recommendedAction: "Accept",
+    inspectorName: "",
+    remarks: ""
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     toast({
-      title: "Quality Check Saved",
-      description: `Inspection #${inspectionNumber} has been recorded.`
+      title: "Quality Control Report Saved",
+      description: `Inspection for ${formData.materialName} has been recorded.`
     });
   };
 
@@ -65,85 +52,53 @@ const ProductionQualityCheck = () => {
         <Link to="/production" className="text-gray-500 hover:text-gray-800">
           <ChevronLeft className="h-5 w-5" />
         </Link>
-        <h1 className="text-2xl font-bold">Quality Check Form</h1>
+        <h1 className="text-2xl font-bold">Vendor Evaluation & Defect Report</h1>
       </div>
 
       <form onSubmit={handleSubmit}>
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle>Inspection Details</CardTitle>
+            <CardTitle>Basic Information</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="inspectionNumber">Inspection Number *</Label>
-                <Input 
-                  id="inspectionNumber" 
-                  placeholder="Enter inspection number" 
-                  value={inspectionNumber} 
-                  onChange={e => setInspectionNumber(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="jobNumber">Job Number *</Label>
-                <Input 
-                  id="jobNumber" 
-                  placeholder="Enter job number" 
-                  value={jobNumber} 
-                  onChange={e => setJobNumber(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="productCode">Product Code *</Label>
-                <Input 
-                  id="productCode" 
-                  placeholder="Enter product code" 
-                  value={productCode} 
-                  onChange={e => setProductCode(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="batchNumber">Batch Number *</Label>
-                <Input 
-                  id="batchNumber" 
-                  placeholder="Enter batch number" 
-                  value={batchNumber} 
-                  onChange={e => setBatchNumber(e.target.value)}
-                  required
-                />
-              </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <Label htmlFor="inspectionDate">Inspection Date *</Label>
                 <Input 
                   id="inspectionDate" 
-                  type="date" 
-                  value={inspectionDate} 
-                  onChange={e => setInspectionDate(e.target.value)}
+                  type="date"
+                  value={formData.inspectionDate}
+                  onChange={e => setFormData(prev => ({ ...prev, inspectionDate: e.target.value }))}
                   required
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="sampleSize">Sample Size *</Label>
+                <Label htmlFor="materialName">Material Name *</Label>
                 <Input 
-                  id="sampleSize" 
-                  type="number" 
-                  min="1" 
-                  placeholder="Enter sample size" 
-                  value={sampleSize} 
-                  onChange={e => setSampleSize(e.target.value)}
+                  id="materialName" 
+                  placeholder="Enter material name"
+                  value={formData.materialName}
+                  onChange={e => setFormData(prev => ({ ...prev, materialName: e.target.value }))}
                   required
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="inspectorName">Inspector Name *</Label>
+                <Label htmlFor="batchReference">Batch/Delivery Reference *</Label>
                 <Input 
-                  id="inspectorName" 
-                  placeholder="Enter inspector name" 
-                  value={inspectorName} 
-                  onChange={e => setInspectorName(e.target.value)}
+                  id="batchReference" 
+                  placeholder="Enter batch reference"
+                  value={formData.batchReference}
+                  onChange={e => setFormData(prev => ({ ...prev, batchReference: e.target.value }))}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="vendorName">Vendor Name *</Label>
+                <Input 
+                  id="vendorName" 
+                  placeholder="Enter vendor name"
+                  value={formData.vendorName}
+                  onChange={e => setFormData(prev => ({ ...prev, vendorName: e.target.value }))}
                   required
                 />
               </div>
@@ -153,82 +108,111 @@ const ProductionQualityCheck = () => {
 
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle>Quality Parameters</CardTitle>
+            <CardTitle>Inspection Details</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-6">
-              {checkItems.map((item, index) => (
-                <div key={item.id} className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-semibold">{item.parameter}</h3>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor={`specification-${item.id}`}>Specification</Label>
-                      <Input 
-                        id={`specification-${item.id}`} 
-                        placeholder="Required specification" 
-                        value={item.specification} 
-                        onChange={e => handleCheckItemChange(item.id, 'specification', e.target.value)}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor={`actual-${item.id}`}>Actual Measurement</Label>
-                      <Input 
-                        id={`actual-${item.id}`} 
-                        placeholder="Measured value" 
-                        value={item.actual} 
-                        onChange={e => handleCheckItemChange(item.id, 'actual', e.target.value)}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor={`result-${item.id}`}>Result</Label>
-                      <Select 
-                        value={item.result} 
-                        onValueChange={(value) => handleCheckItemChange(item.id, 'result', value as "pass" | "fail" | "")}
-                      >
-                        <SelectTrigger id={`result-${item.id}`}>
-                          <SelectValue placeholder="Select result" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="pass">Pass</SelectItem>
-                          <SelectItem value="fail">Fail</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  {index < checkItems.length - 1 && <Separator />}
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>Inspection Result</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label htmlFor="overallResult">Overall Result *</Label>
-                <Select required value={overallResult} onValueChange={(value: "pass" | "fail" | "") => setOverallResult(value)}>
-                  <SelectTrigger id="overallResult">
-                    <SelectValue placeholder="Select overall result" />
+                <Label htmlFor="inspectionResult">Inspection Result *</Label>
+                <Select 
+                  value={formData.inspectionResult}
+                  onValueChange={(value: InspectionResult) => setFormData(prev => ({ ...prev, inspectionResult: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select result" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="pass">Pass</SelectItem>
-                    <SelectItem value="fail">Fail</SelectItem>
+                    <SelectItem value="Passed">Passed</SelectItem>
+                    <SelectItem value="Failed">Failed</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="comments">Comments</Label>
+                <Label htmlFor="defectType">Defect Type</Label>
+                <Input 
+                  id="defectType" 
+                  placeholder="Enter defect type if any"
+                  value={formData.defectType}
+                  onChange={e => setFormData(prev => ({ ...prev, defectType: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="severityLevel">Severity Level *</Label>
+                <Select 
+                  value={formData.severityLevel}
+                  onValueChange={(value: DefectSeverity) => setFormData(prev => ({ ...prev, severityLevel: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select severity" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Minor">Minor</SelectItem>
+                    <SelectItem value="Moderate">Moderate</SelectItem>
+                    <SelectItem value="Critical">Critical</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="vendorRating">Vendor Performance Rating (1-5) *</Label>
+                <Select 
+                  value={formData.vendorRating.toString()}
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, vendorRating: parseInt(value) }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select rating" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[1, 2, 3, 4, 5].map(rating => (
+                      <SelectItem key={rating} value={rating.toString()}>
+                        {rating} Star{rating > 1 ? 's' : ''}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Final Assessment</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="recommendedAction">Recommended Action *</Label>
+                <Select 
+                  value={formData.recommendedAction}
+                  onValueChange={(value: RecommendedAction) => setFormData(prev => ({ ...prev, recommendedAction: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select action" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Accept">Accept</SelectItem>
+                    <SelectItem value="Reject">Reject</SelectItem>
+                    <SelectItem value="Conditional Use">Conditional Use</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="inspectorName">QC Inspector Name *</Label>
+                <Input 
+                  id="inspectorName" 
+                  placeholder="Enter inspector name"
+                  value={formData.inspectorName}
+                  onChange={e => setFormData(prev => ({ ...prev, inspectorName: e.target.value }))}
+                  required
+                />
+              </div>
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="remarks">Remarks</Label>
                 <Textarea 
-                  id="comments" 
-                  placeholder="Enter any comments or observations" 
-                  value={comments} 
-                  onChange={e => setComments(e.target.value)}
+                  id="remarks" 
+                  placeholder="Enter any additional remarks"
+                  value={formData.remarks}
+                  onChange={e => setFormData(prev => ({ ...prev, remarks: e.target.value }))}
                   rows={4}
                 />
               </div>
@@ -240,9 +224,7 @@ const ProductionQualityCheck = () => {
           <Button type="button" variant="outline" asChild>
             <Link to="/production">Cancel</Link>
           </Button>
-          <Button type="submit" className="flex items-center gap-2">
-            <Save className="h-4 w-4" /> Submit Quality Check
-          </Button>
+          <Button type="submit">Submit Quality Control Report</Button>
         </div>
       </form>
     </div>
