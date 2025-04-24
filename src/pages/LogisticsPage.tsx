@@ -65,12 +65,6 @@ const LogisticsPage = () => {
           path="/logistics/picking-list"
         />
         <LogisticsFormCard 
-          title="View Picking Lists" 
-          description="View all saved picking lists" 
-          lastUpdated="Today"
-          path="/logistics/picking-lists"
-        />
-        <LogisticsFormCard 
           title="Dispatch Note" 
           description="Generate dispatch notes for shipment documentation" 
           lastUpdated="Yesterday"
