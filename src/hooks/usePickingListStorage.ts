@@ -37,6 +37,13 @@ export const usePickingListStorage = () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(formData));
   }, [formData]);
 
+  const savePickingList = () => {
+    if (formData.orderNumber) {
+      localStorage.setItem(`picking-list-${formData.orderNumber}`, JSON.stringify(formData));
+      localStorage.removeItem(STORAGE_KEY);
+    }
+  };
+
   const clearStoredData = () => {
     localStorage.removeItem(STORAGE_KEY);
     setFormData({
@@ -49,5 +56,5 @@ export const usePickingListStorage = () => {
     });
   };
 
-  return { formData, setFormData, clearStoredData };
+  return { formData, setFormData, clearStoredData, savePickingList };
 };
