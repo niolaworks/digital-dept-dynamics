@@ -3,19 +3,43 @@ import { useState, useEffect } from 'react';
 
 type Item = {
   id: number;
-  sku: string;
+  itemCode: string;
   description: string;
-  location: string;
-  quantity: number;
+  unit: string;
+  orderQty: number;
+  pickQty: number;
+  backOrderQty: number;
+  pickMass: number;
+};
+
+type TransportDetails = {
+  transporter: string;
+  vehicleRegNumber: string;
+  vehicleType: string;
+  vehicleCapacity: string;
+  driverName: string;
+  driverSignature?: string;
+  datePicked?: string;
+  pickedBy: string;
+  checkedBy: string;
+  comments: string;
 };
 
 type PickingListData = {
+  pln: string;
   orderNumber: string;
+  customerCode: string;
   customerName: string;
-  pickDate: string;
+  customerAddress: string;
+  orderDate: string;
+  deliveryDate: string;
+  deliveryMode: string;
   warehouse: string;
-  priority: string;
+  purchaseOrderNo: string;
   items: Item[];
+  transportDetails: TransportDetails;
+  printDate?: string;
+  printTime?: string;
 };
 
 const STORAGE_KEY = 'picking-list-draft';
@@ -24,12 +48,38 @@ export const usePickingListStorage = () => {
   const [formData, setFormData] = useState<PickingListData>(() => {
     const savedData = localStorage.getItem(STORAGE_KEY);
     return savedData ? JSON.parse(savedData) : {
+      pln: '',
       orderNumber: '',
+      customerCode: '',
       customerName: '',
-      pickDate: '',
+      customerAddress: '',
+      orderDate: '',
+      deliveryDate: '',
+      deliveryMode: '',
       warehouse: '',
-      priority: '',
-      items: [{ id: 1, sku: '', description: '', location: '', quantity: 1 }]
+      purchaseOrderNo: '',
+      items: [{
+        id: 1,
+        itemCode: '',
+        description: '',
+        unit: 'CS',
+        orderQty: 0,
+        pickQty: 0,
+        backOrderQty: 0,
+        pickMass: 0
+      }],
+      transportDetails: {
+        transporter: '',
+        vehicleRegNumber: '',
+        vehicleType: '',
+        vehicleCapacity: '',
+        driverName: '',
+        driverSignature: '',
+        datePicked: '',
+        pickedBy: '',
+        checkedBy: '',
+        comments: ''
+      }
     };
   });
 
@@ -39,8 +89,15 @@ export const usePickingListStorage = () => {
 
   const savePickingList = () => {
     if (formData.orderNumber) {
-      localStorage.setItem(`picking-list-${formData.orderNumber}`, JSON.stringify(formData));
+      const now = new Date();
+      const dataWithTimestamp = {
+        ...formData,
+        printDate: now.toLocaleDateString(),
+        printTime: now.toLocaleTimeString()
+      };
+      localStorage.setItem(`picking-list-${formData.orderNumber}`, JSON.stringify(dataWithTimestamp));
       localStorage.removeItem(STORAGE_KEY);
+      return dataWithTimestamp;
     }
   };
 
@@ -57,15 +114,42 @@ export const usePickingListStorage = () => {
   };
 
   const clearStoredData = () => {
-    savePickingList();
+    const savedData = savePickingList();
     setFormData({
+      pln: '',
       orderNumber: '',
+      customerCode: '',
       customerName: '',
-      pickDate: '',
+      customerAddress: '',
+      orderDate: '',
+      deliveryDate: '',
+      deliveryMode: '',
       warehouse: '',
-      priority: '',
-      items: [{ id: 1, sku: '', description: '', location: '', quantity: 1 }]
+      purchaseOrderNo: '',
+      items: [{
+        id: 1,
+        itemCode: '',
+        description: '',
+        unit: 'CS',
+        orderQty: 0,
+        pickQty: 0,
+        backOrderQty: 0,
+        pickMass: 0
+      }],
+      transportDetails: {
+        transporter: '',
+        vehicleRegNumber: '',
+        vehicleType: '',
+        vehicleCapacity: '',
+        driverName: '',
+        driverSignature: '',
+        datePicked: '',
+        pickedBy: '',
+        checkedBy: '',
+        comments: ''
+      }
     });
+    return savedData;
   };
 
   return { formData, setFormData, clearStoredData, getAllPickingLists };

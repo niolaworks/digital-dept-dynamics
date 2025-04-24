@@ -6,11 +6,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { ChevronLeft, Plus, Save, Trash, Eye } from "lucide-react";
+import { ChevronLeft, Plus, Save, Trash } from "lucide-react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { usePickingListStorage } from "@/hooks/usePickingListStorage";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useEffect } from "react";
+import { Textarea } from "@/components/ui/textarea";
 
 const LogisticsPickingList = () => {
   const { toast } = useToast();
@@ -55,12 +55,18 @@ const LogisticsPickingList = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    toast({
-      title: "Picking List Created",
-      description: `Order #${formData.orderNumber} has been saved.`
-    });
-    clearStoredData();
-    navigate('?tab=saved');
+    const savedData = clearStoredData();
+    if (savedData) {
+      toast({
+        title: "Picking List Created",
+        description: `Order #${savedData.orderNumber} has been saved.`
+      });
+      navigate('?tab=saved');
+    }
+  };
+
+  const calculateTotalPickMass = () => {
+    return formData.items.reduce((sum, item) => sum + item.pickMass, 0);
   };
 
   return (
@@ -95,35 +101,75 @@ const LogisticsPickingList = () => {
                 <CardTitle>Order Information</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="pln">PLN</Label>
+                    <Input 
+                      id="pln" 
+                      value={formData.pln} 
+                      onChange={e => setFormData({ ...formData, pln: e.target.value })}
+                    />
+                  </div>
                   <div className="space-y-2">
                     <Label htmlFor="orderNumber">Order Number *</Label>
                     <Input 
                       id="orderNumber" 
-                      placeholder="Enter order number" 
                       value={formData.orderNumber} 
                       onChange={e => setFormData({ ...formData, orderNumber: e.target.value })}
                       required
                     />
                   </div>
                   <div className="space-y-2">
+                    <Label htmlFor="customerCode">Customer Code</Label>
+                    <Input 
+                      id="customerCode" 
+                      value={formData.customerCode} 
+                      onChange={e => setFormData({ ...formData, customerCode: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
                     <Label htmlFor="customerName">Customer Name *</Label>
                     <Input 
                       id="customerName" 
-                      placeholder="Enter customer name" 
                       value={formData.customerName} 
                       onChange={e => setFormData({ ...formData, customerName: e.target.value })}
                       required
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="pickDate">Pick Date *</Label>
+                    <Label htmlFor="customerAddress">Customer Address</Label>
                     <Input 
-                      id="pickDate" 
+                      id="customerAddress" 
+                      value={formData.customerAddress} 
+                      onChange={e => setFormData({ ...formData, customerAddress: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="orderDate">Order Date *</Label>
+                    <Input 
+                      id="orderDate" 
                       type="date" 
-                      value={formData.pickDate} 
-                      onChange={e => setFormData({ ...formData, pickDate: e.target.value })}
+                      value={formData.orderDate} 
+                      onChange={e => setFormData({ ...formData, orderDate: e.target.value })}
                       required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="deliveryDate">Delivery Date *</Label>
+                    <Input 
+                      id="deliveryDate" 
+                      type="date" 
+                      value={formData.deliveryDate} 
+                      onChange={e => setFormData({ ...formData, deliveryDate: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="deliveryMode">Delivery Mode</Label>
+                    <Input 
+                      id="deliveryMode" 
+                      value={formData.deliveryMode} 
+                      onChange={e => setFormData({ ...formData, deliveryMode: e.target.value })}
                     />
                   </div>
                   <div className="space-y-2">
@@ -136,28 +182,19 @@ const LogisticsPickingList = () => {
                         <SelectValue placeholder="Select warehouse" />
                       </SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="Agl-FG">Agl-FG</SelectItem>
                         <SelectItem value="main">Main Warehouse</SelectItem>
                         <SelectItem value="secondary">Secondary Warehouse</SelectItem>
-                        <SelectItem value="overflow">Overflow Storage</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="priority">Priority</Label>
-                    <Select 
-                      value={formData.priority} 
-                      onValueChange={value => setFormData({ ...formData, priority: value })}
-                    >
-                      <SelectTrigger id="priority">
-                        <SelectValue placeholder="Select priority" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="low">Low</SelectItem>
-                        <SelectItem value="medium">Medium</SelectItem>
-                        <SelectItem value="high">High</SelectItem>
-                        <SelectItem value="urgent">Urgent</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Label htmlFor="purchaseOrderNo">Purchase Order No.</Label>
+                    <Input 
+                      id="purchaseOrderNo" 
+                      value={formData.purchaseOrderNo} 
+                      onChange={e => setFormData({ ...formData, purchaseOrderNo: e.target.value })}
+                    />
                   </div>
                 </div>
               </CardContent>
@@ -177,62 +214,197 @@ const LogisticsPickingList = () => {
                 </Button>
               </CardHeader>
               <CardContent>
-                {formData.items.map((item, index) => (
-                  <div key={item.id} className="mb-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="font-medium">Item #{index + 1}</h3>
-                      <Button 
-                        type="button" 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() => handleRemoveItem(item.id)}
-                        className="text-red-500 hover:text-red-700"
-                      >
-                        <Trash className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                      <div className="space-y-2 md:col-span-1">
-                        <Label htmlFor={`sku-${item.id}`}>SKU</Label>
-                        <Input 
-                          id={`sku-${item.id}`} 
-                          placeholder="Item SKU" 
-                          value={item.sku} 
-                          onChange={e => handleItemChange(item.id, 'sku', e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-2 md:col-span-2">
-                        <Label htmlFor={`description-${item.id}`}>Description</Label>
-                        <Input 
-                          id={`description-${item.id}`} 
-                          placeholder="Item description" 
-                          value={item.description} 
-                          onChange={e => handleItemChange(item.id, 'description', e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor={`location-${item.id}`}>Location</Label>
-                        <Input 
-                          id={`location-${item.id}`} 
-                          placeholder="Item location" 
-                          value={item.location} 
-                          onChange={e => handleItemChange(item.id, 'location', e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor={`quantity-${item.id}`}>Quantity</Label>
-                        <Input 
-                          id={`quantity-${item.id}`} 
-                          type="number" 
-                          min="1" 
-                          value={item.quantity} 
-                          onChange={e => handleItemChange(item.id, 'quantity', parseInt(e.target.value) || 1)}
-                        />
-                      </div>
-                    </div>
-                    {index < formData.items.length - 1 && <Separator className="mt-4" />}
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Item Code</TableHead>
+                        <TableHead>Description</TableHead>
+                        <TableHead>Unit</TableHead>
+                        <TableHead>Order Qty</TableHead>
+                        <TableHead>Pick Qty</TableHead>
+                        <TableHead>Back Order Qty</TableHead>
+                        <TableHead>Pick Mass</TableHead>
+                        <TableHead></TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {formData.items.map((item) => (
+                        <TableRow key={item.id}>
+                          <TableCell>
+                            <Input 
+                              value={item.itemCode}
+                              onChange={e => handleItemChange(item.id, 'itemCode', e.target.value)}
+                              className="w-24"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Input 
+                              value={item.description}
+                              onChange={e => handleItemChange(item.id, 'description', e.target.value)}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Input 
+                              value={item.unit}
+                              onChange={e => handleItemChange(item.id, 'unit', e.target.value)}
+                              className="w-20"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Input 
+                              type="number"
+                              value={item.orderQty}
+                              onChange={e => handleItemChange(item.id, 'orderQty', Number(e.target.value))}
+                              className="w-24"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Input 
+                              type="number"
+                              value={item.pickQty}
+                              onChange={e => handleItemChange(item.id, 'pickQty', Number(e.target.value))}
+                              className="w-24"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Input 
+                              type="number"
+                              value={item.backOrderQty}
+                              onChange={e => handleItemChange(item.id, 'backOrderQty', Number(e.target.value))}
+                              className="w-24"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Input 
+                              type="number"
+                              value={item.pickMass}
+                              onChange={e => handleItemChange(item.id, 'pickMass', Number(e.target.value))}
+                              className="w-24"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleRemoveItem(item.id)}
+                              className="text-red-500 hover:text-red-700"
+                            >
+                              <Trash className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-right font-medium">
+                          Total Pick Mass:
+                        </TableCell>
+                        <TableCell colSpan={2}>
+                          {calculateTotalPickMass().toFixed(2)}
+                        </TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle>Transport Details</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="transporter">Transporter</Label>
+                    <Input 
+                      id="transporter"
+                      value={formData.transportDetails.transporter}
+                      onChange={e => setFormData({
+                        ...formData,
+                        transportDetails: { ...formData.transportDetails, transporter: e.target.value }
+                      })}
+                    />
                   </div>
-                ))}
+                  <div className="space-y-2">
+                    <Label htmlFor="vehicleRegNumber">Vehicle Register Number</Label>
+                    <Input 
+                      id="vehicleRegNumber"
+                      value={formData.transportDetails.vehicleRegNumber}
+                      onChange={e => setFormData({
+                        ...formData,
+                        transportDetails: { ...formData.transportDetails, vehicleRegNumber: e.target.value }
+                      })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="vehicleType">Vehicle Type</Label>
+                    <Input 
+                      id="vehicleType"
+                      value={formData.transportDetails.vehicleType}
+                      onChange={e => setFormData({
+                        ...formData,
+                        transportDetails: { ...formData.transportDetails, vehicleType: e.target.value }
+                      })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="vehicleCapacity">Vehicle Capacity</Label>
+                    <Input 
+                      id="vehicleCapacity"
+                      value={formData.transportDetails.vehicleCapacity}
+                      onChange={e => setFormData({
+                        ...formData,
+                        transportDetails: { ...formData.transportDetails, vehicleCapacity: e.target.value }
+                      })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="driverName">Driver Name</Label>
+                    <Input 
+                      id="driverName"
+                      value={formData.transportDetails.driverName}
+                      onChange={e => setFormData({
+                        ...formData,
+                        transportDetails: { ...formData.transportDetails, driverName: e.target.value }
+                      })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="pickedBy">Picked By</Label>
+                    <Input 
+                      id="pickedBy"
+                      value={formData.transportDetails.pickedBy}
+                      onChange={e => setFormData({
+                        ...formData,
+                        transportDetails: { ...formData.transportDetails, pickedBy: e.target.value }
+                      })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="checkedBy">Checked By</Label>
+                    <Input 
+                      id="checkedBy"
+                      value={formData.transportDetails.checkedBy}
+                      onChange={e => setFormData({
+                        ...formData,
+                        transportDetails: { ...formData.transportDetails, checkedBy: e.target.value }
+                      })}
+                    />
+                  </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <Label htmlFor="comments">Comments</Label>
+                    <Textarea 
+                      id="comments"
+                      value={formData.transportDetails.comments}
+                      onChange={e => setFormData({
+                        ...formData,
+                        transportDetails: { ...formData.transportDetails, comments: e.target.value }
+                      })}
+                    />
+                  </div>
+                </div>
               </CardContent>
             </Card>
 
@@ -250,38 +422,42 @@ const LogisticsPickingList = () => {
         <TabsContent value="saved">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                Saved Picking Lists
-              </CardTitle>
+              <CardTitle>Saved Picking Lists</CardTitle>
             </CardHeader>
             <CardContent>
               {getAllPickingLists().length === 0 ? (
                 <p className="text-center text-gray-500 py-4">No picking lists found</p>
               ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Order Number</TableHead>
-                      <TableHead>Customer Name</TableHead>
-                      <TableHead>Pick Date</TableHead>
-                      <TableHead>Warehouse</TableHead>
-                      <TableHead>Priority</TableHead>
-                      <TableHead>Items</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {getAllPickingLists().map((list, index) => (
-                      <TableRow key={index}>
-                        <TableCell>{list.orderNumber}</TableCell>
-                        <TableCell>{list.customerName}</TableCell>
-                        <TableCell>{list.pickDate}</TableCell>
-                        <TableCell>{list.warehouse}</TableCell>
-                        <TableCell className="capitalize">{list.priority}</TableCell>
-                        <TableCell>{list.items.length} items</TableCell>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>PLN</TableHead>
+                        <TableHead>Order Number</TableHead>
+                        <TableHead>Customer</TableHead>
+                        <TableHead>Delivery Date</TableHead>
+                        <TableHead>Warehouse</TableHead>
+                        <TableHead>Items</TableHead>
+                        <TableHead>Created</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {getAllPickingLists().map((list, index) => (
+                        <TableRow key={index}>
+                          <TableCell>{list.pln}</TableCell>
+                          <TableCell>{list.orderNumber}</TableCell>
+                          <TableCell>{list.customerName}</TableCell>
+                          <TableCell>{list.deliveryDate}</TableCell>
+                          <TableCell>{list.warehouse}</TableCell>
+                          <TableCell>{list.items.length} items</TableCell>
+                          <TableCell>
+                            {list.printDate} {list.printTime}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               )}
             </CardContent>
           </Card>
