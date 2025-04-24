@@ -23,6 +23,7 @@ const departments: Department[] = [
     icon: Truck,
     forms: [
       { name: "Picking List", path: "/logistics/picking-list" },
+      { name: "View Picking Lists", path: "/logistics/picking-lists" },
       { name: "Dispatch Note", path: "/logistics/dispatch-note" },
     ],
   },
