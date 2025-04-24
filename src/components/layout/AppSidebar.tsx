@@ -1,7 +1,8 @@
+
 import { Link, useLocation } from "react-router-dom";
 import { useSidebar } from "./SidebarProvider";
 import { cn } from "@/lib/utils";
-import { ChevronDown, FileText, Package, Truck } from "lucide-react";
+import { ChevronDown, FileText, Package, Truck, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 
@@ -30,7 +31,7 @@ const departments: Department[] = [
     path: "/production",
     icon: Package,
     forms: [
-      { name: "Job Card", path: "/production/job-card" },
+      { name: "Downtime Tracking", path: "/production/downtime" },
       { name: "Quality Check", path: "/production/quality-check" },
     ],
   },

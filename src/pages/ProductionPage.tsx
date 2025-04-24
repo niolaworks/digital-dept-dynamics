@@ -1,27 +1,32 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText, Package } from "lucide-react";
+import { FileText, Package, Clock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const ProductionFormCard = ({ 
   title, 
   description, 
   lastUpdated, 
-  path 
+  path,
+  icon: Icon 
 }: { 
   title: string; 
   description: string; 
   lastUpdated: string; 
   path: string;
+  icon: React.ElementType;
 }) => {
   const navigate = useNavigate();
   
   return (
     <Card className="hover:shadow-md transition-all">
       <CardHeader className="p-6">
-        <CardTitle className="text-xl">{title}</CardTitle>
-        <p className="text-sm text-gray-500 mt-1">{description}</p>
+        <div className="flex items-center justify-between mb-2">
+          <CardTitle className="text-xl">{title}</CardTitle>
+          <Icon className="h-5 w-5 text-manufacturing-500" />
+        </div>
+        <p className="text-sm text-gray-500">{description}</p>
       </CardHeader>
       <CardContent className="px-6">
         <div className="text-xs text-gray-500">
@@ -50,7 +55,7 @@ const ProductionPage = () => {
         <div>
           <h1 className="text-3xl font-bold">Production Department</h1>
           <p className="text-gray-500">
-            Handle job cards, quality checks and production schedules
+            Handle downtime tracking, quality checks and production schedules
           </p>
         </div>
       </div>
@@ -59,16 +64,18 @@ const ProductionPage = () => {
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <ProductionFormCard 
-          title="Job Card" 
-          description="Create job cards for production runs with detailed specifications" 
-          lastUpdated="2 days ago"
-          path="/production/job-card"
+          title="Downtime Tracking" 
+          description="Track and analyze production downtime incidents and causes" 
+          lastUpdated="Today"
+          path="/production/downtime"
+          icon={Clock}
         />
         <ProductionFormCard 
           title="Quality Check" 
           description="Perform and document quality inspections for production batches" 
           lastUpdated="1 week ago"
           path="/production/quality-check"
+          icon={FileText}
         />
         <Card className="border-dashed border-2 hover:border-manufacturing-300 transition-all flex items-center justify-center h-[200px]">
           <div className="text-center p-6">

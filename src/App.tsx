@@ -14,7 +14,7 @@ import LogisticsPickingList from "@/pages/logistics/PickingListForm";
 import ViewPickingLists from "@/pages/logistics/ViewPickingLists";
 import LogisticsDispatchNote from "@/pages/logistics/DispatchNoteForm";
 import ProductionPage from "@/pages/ProductionPage";
-import ProductionJobCard from "@/pages/production/JobCardForm";
+import DowntimeTrackingForm from "@/pages/production/DowntimeTrackingForm";
 import ProductionQualityCheck from "@/pages/production/QualityCheckForm";
 
 const queryClient = new QueryClient();
@@ -34,7 +34,7 @@ const App = () => (
               <Route path="logistics/picking-lists" element={<ViewPickingLists />} />
               <Route path="logistics/dispatch-note" element={<LogisticsDispatchNote />} />
               <Route path="production" element={<ProductionPage />} />
-              <Route path="production/job-card" element={<ProductionJobCard />} />
+              <Route path="production/downtime" element={<DowntimeTrackingForm />} />
               <Route path="production/quality-check" element={<ProductionQualityCheck />} />
               <Route path="*" element={<NotFound />} />
             </Route>
